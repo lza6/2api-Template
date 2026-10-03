@@ -34,6 +34,7 @@ pub fn build_router(state: AppState) -> Router {
         .route("/v1/models", get(handle_v1_models))
         .route("/v1/chat/completions", post(handle_chat_completions))
         .route("/v1/messages", post(handle_messages))
+        .route("/v1/messages/count_tokens", post(handle_count_tokens))
         .route("/api/config/api-key", post(handle_config_api_key))
         .layer(axum::middleware::from_fn_with_state(state.clone(), cors_mw))
         .with_state(state)
@@ -274,6 +275,21 @@ async fn handle_messages(
             }
         }
     }
+}
+
+// ---------- Claude Code 兼容 ----------
+
+/// Claude Code 会调用 /v1/messages/count_tokens 预统计。返回估算值。
+async fn handle_count_tokens(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+    Json(req): Json<MessagesRequest>,
+) -> Response {
+    if let Err(e) = check_api_key(&state.cfg, &state.api_keys, &headers) {
+        return anthropic_error(e);
+    }
+    let prompt = build_prompt(&req.messages, req.system.as_ref());
+    Json(serde_json::json!({ "input_tokens": crate::protocol::estimate_tokens(&prompt) })).into_response()
 }
 
 // ---------- 共享逻辑 ----------

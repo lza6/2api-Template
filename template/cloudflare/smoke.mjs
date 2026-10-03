@@ -44,6 +44,10 @@ console.log("== Anthropic ==");
 { const r = await jpost("/v1/messages", { model: "default-model", max_tokens: 50, messages: [{ role: "user", content: "hi" }], stream: true });
   const s = await r.text(); ok("含 message_start", s.includes("event: message_start")); ok("含 message_stop", s.includes("event: message_stop")); }
 
+console.log("== Claude Code count_tokens ==");
+{ const r = await jpost("/v1/messages/count_tokens", { model: "default-model", messages: [{ role: "user", content: "hello count tokens" }] });
+  const j = JSON.parse(await r.text()); ok("input_tokens", typeof j.input_tokens === "number" && j.input_tokens > 0); }
+
 console.log("== 错误映射 ==");
 { mode = "empty"; const r = await jpost("/v1/chat/completions", { model: "default-model", messages: [{ role: "user", content: "hi" }] }); ok("空上游→502", r.status === 502, String(r.status)); mode = "ok"; }
 { const r = await jpost("/v1/chat/completions", { messages: [] }); ok("空 messages→400", r.status === 400, String(r.status)); }

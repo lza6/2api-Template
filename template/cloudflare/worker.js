@@ -154,6 +154,7 @@ export default {
       case "/v1/models": return handleModels(request, apiKey);
       case "/v1/chat/completions": return handleOpenAI(request, apiKey);
       case "/v1/messages": return handleAnthropic(request, apiKey);
+      case "/v1/messages/count_tokens": return handleCountTokens(request, apiKey);
       default: return errorResponse(`未找到路径: ${url.pathname}`, 404, "not_found");
     }
   },
@@ -242,9 +243,17 @@ function anthropicFrames(content, model, id, inTok) {
   return f;
 }
 
+// ---------- Claude Code 兼容 ----------
+async function handleCountTokens(request, apiKey) {
+  if (!verifyAuth(request, apiKey)) return errorResponse("未授权", 401, "unauthorized", true);
+  let body;
+  try { body = await request.json(); } catch { return errorResponse("无效 JSON", 400, "invalid_json", true); }
+  const prompt = extractPrompt(body.messages || [], body.system);
+  return json({ input_tokens: est(prompt) });
+}
+
 // ---------- 工具 ----------
-function stream(frames, ms = CONFIG.CHUNK_DELAY_MS) {
-  const enc = new TextEncoder();
+function stream(frames, ms = CONFIG.CHUNK_DELAY_MS) {  const enc = new TextEncoder();
   const rs = new ReadableStream({
     async start(c) {
       for (const f of frames) { c.enqueue(enc.encode(f)); if (ms > 0) await new Promise(r => setTimeout(r, ms)); }

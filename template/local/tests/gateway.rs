@@ -56,6 +56,16 @@ fn post_json(uri: &str, body: serde_json::Value) -> Request<Body> {
 }
 
 #[tokio::test]
+async fn count_tokens_ok() {
+    let (app, _) = make_app("ok").await;
+    let r = app.oneshot(post_json("/v1/messages/count_tokens",
+        serde_json::json!({ "model": "default-model", "messages": [{ "role": "user", "content": "hello there count my tokens" }] }))).await.unwrap();
+    assert_eq!(r.status(), StatusCode::OK);
+    let v: serde_json::Value = serde_json::from_str(&body_string(r).await).unwrap();
+    assert!(v["input_tokens"].as_u64().unwrap() > 0);
+}
+
+#[tokio::test]
 async fn healthz_ok() {
     let (app, _) = make_app("ok").await;
     let r = app.oneshot(Request::builder().uri("/healthz").body(Body::empty()).unwrap()).await.unwrap();

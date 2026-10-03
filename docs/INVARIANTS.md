@@ -7,6 +7,7 @@
 - [ ] `POST /v1/chat/completions` 支持 `stream: true/false`，帧符合 OpenAI SSE 规范
 - [ ] `POST /v1/messages` 支持 `stream: true/false`，事件序符合 Anthropic 规范
       （`message_start` → `content_block_start` → `content_block_delta*` → `content_block_stop` → `message_delta` → `message_stop`）
+- [ ] `POST /v1/messages/count_tokens` 返回 `{input_tokens:N}`（Claude Code 会调用，见 [`CLAUDE-CODE.md`](CLAUDE-CODE.md)）
 - [ ] `GET /v1/models` 返回真实目录
 - [ ] `GET /healthz` 返回服务状态
 - [ ] 流式响应 `Content-Type: text/event-stream; charset=utf-8`，`Cache-Control: no-cache`
@@ -23,10 +24,13 @@
 - [ ] 模型/工具 id 来自实测（路由表 / JS / 接口）
 - [ ] 每个 id 至少抽查过一次真实调用
 - [ ] 无编造 id；展示名与 id 分离
+- [ ] **全量 E2E 报告**存在，明确列出「哪些真可用/哪些失败」及原因（限额 vs 坏 id）
+      （起手：`template/cloudflare/scripts/e2e-all-models.mjs`）
 
 ## 4. 错误处理
 
 - [ ] 上游限额/登录墙哨兵 → `429 rate_limit_error`（不透传哨兵文本）
+- [ ] **限流检测基于响应文本**（不少上游 200 + 文本哨兵，状态码不可靠）
 - [ ] 上游空响应 → `502 upstream_error`
 - [ ] 上游非 2xx → 映射为 `502`
 - [ ] 空 `messages` → `400 invalid_request`
