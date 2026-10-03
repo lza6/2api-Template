@@ -28,10 +28,19 @@
 
 ## 快速开始
 
-1. 读 [`docs/QUICKSTART.md`](docs/QUICKSTART.md) —— 5 步从零到可用网关
-2. 用 [`skills/reverse-2api/`](skills/reverse-2api/) 逆向目标站点的上游契约
-3. 复制 `template/cloudflare/` 或 `template/local/`，填自己的 provider
-4. 跑测试、接入客户端
+```bash
+# 一条命令生成新项目（默认 CF + 本地双形态）
+node scripts/new-2api.mjs mysite-2api
+
+# 或手动：
+# 1. 读 docs/QUICKSTART.md —— 5 步从零到可用网关
+# 2. 用 skills/reverse-2api/ 逆向上游契约
+# 3. 复制 template/cloudflare/ 或 template/local/，填 4 处 [★ PROVIDER]
+# 4. 跑测试、对照 docs/INVARIANTS.md 验收
+# 5. 接入客户端（Claude Code 见 docs/CLAUDE-CODE.md）
+```
+
+详见 [`docs/SCAFFOLD.md`](docs/SCAFFOLD.md)。
 
 ## 设计不变量（新网关必须满足）
 
