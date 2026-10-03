@@ -1,7 +1,7 @@
 // 全量模型真实 E2E：逐个打上游，产出「哪些真的可用」报告。
 // 适配你的上游：改下面 UPSTREAM / buildRequest；目录从 worker.js 的 CATALOG 读取。
 // 用法: node scripts/e2e-all-models.mjs [--json]
-import { CATALOG } from "../worker.js";
+import { CATALOG } from "../core.mjs";
 
 const MODELS = Object.values(CATALOG).flat();
 const jsonMode = process.argv.includes("--json");

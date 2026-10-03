@@ -1,0 +1,8 @@
+name = "my-2api-js"
+main = "targets/cloudflare.mjs"
+compatibility_date = "2025-11-01"
+
+# 建议用 secret 注入强密钥：wrangler secret put API_MASTER_KEY
+
+[vars]
+# API_MASTER_KEY = "your-strong-key"

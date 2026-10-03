@@ -1,0 +1,14 @@
+{
+  "name": "my-2api-js",
+  "version": "0.1.0",
+  "description": "把某站点的免费 AI 服务转为 OpenAI/Anthropic 兼容 API（一份核心，多运行时）",
+  "type": "module",
+  "scripts": {
+    "start:node": "node targets/node.mjs",
+    "start:bun": "bun run targets/bun.mjs",
+    "start:deno": "deno run --allow-net --allow-env targets/deno.mjs",
+    "deploy:cloudflare": "wrangler deploy",
+    "test": "node smoke.mjs"
+  },
+  "license": "MIT"
+}

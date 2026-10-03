@@ -25,7 +25,7 @@
 - [ ] 每个 id 至少抽查过一次真实调用
 - [ ] 无编造 id；展示名与 id 分离
 - [ ] **全量 E2E 报告**存在，明确列出「哪些真可用/哪些失败」及原因（限额 vs 坏 id）
-      （起手：`template/cloudflare/scripts/e2e-all-models.mjs`）
+      （起手：`template/js/scripts/e2e-all-models.mjs`）
 
 ## 4. 错误处理
 

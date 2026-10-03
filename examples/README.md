@@ -20,6 +20,6 @@
 
 ## 本模板验证过的测试
 
-- `template/cloudflare/`：`node smoke.mjs` → 13 项
+- `template/js/`：`node smoke.mjs` → 13 项
 - `template/local/`：`cargo test` → 23 项
 - 母本 `perfectassistant-2api`：CF 冒烟 26 项 + Rust 27 项，并经真实上游端到端验证

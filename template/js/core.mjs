@@ -1,21 +1,22 @@
 // =================================================================================
-//  2api-Template · Cloudflare Worker 骨架
+//  2api-Template · JS 运行时无关核心
 //
-//  把任意站点的免费 AI 服务转成 OpenAI (/v1/chat/completions) +
-//  Anthropic (/v1/messages) 兼容 API。协议引擎（伪流式、双协议、错误映射）已就绪，
+//  只依赖 Web 标准 API（fetch / Request / Response / ReadableStream / TextEncoder /
+//  TextDecoder / crypto.randomUUID）。因此同一份核心可跑在：
+//    Cloudflare Workers · Node(18+) · Bun · Deno · Vercel Edge
+//
+//  对外只暴露 handle(request, env) → Response。各运行时适配器见 template/js/targets/。
 //  你只需改标有  [★ PROVIDER]  的部分。
-//
-//  用法：复制本文件 → 按 docs/QUICKSTART.md 填 PROVIDER → wrangler deploy
 // =================================================================================
 
 // ---------------------------------------------------------------------------------
-// [★ PROVIDER 1/4] 配置：改成你的上游
+//  [★ PROVIDER 1/4] 配置：改成你的上游
 // ---------------------------------------------------------------------------------
 const CONFIG = {
   PROJECT_NAME: "my-2api",
   PROJECT_VERSION: "0.1.0",
 
-  API_MASTER_KEY: "1",                 // 建议用 wrangler secret 注入
+  API_MASTER_KEY: "1",                 // 建议用环境变量/secret 注入
 
   // --- 上游端点 ---
   UPSTREAM_URL:  "https://example.com/api/chat",   // ← 改：真实端点
@@ -33,17 +34,17 @@ const CONFIG = {
 const QUOTA_SENTINEL = null;
 
 // ---------------------------------------------------------------------------------
-// [★ PROVIDER 2/4] 模型/工具目录：放你实测到的真实 id
+//  [★ PROVIDER 2/4] 模型/工具目录：放你实测到的真实 id
 // ---------------------------------------------------------------------------------
 const CATALOG = {
-  general: ["default-model", "another-model"],   // ← 改：真实 id（见 QUICKSTART 第 3 步）
+  general: ["default-model", "another-model"],   // ← 改：真实 id（见 docs/QUICKSTART.md）
 };
 const ALL_MODELS = Object.values(CATALOG).flat();
 const MODEL_SET = new Set(ALL_MODELS);
 const isKnownModel = (id) => MODEL_SET.has(id);
 
 // ---------------------------------------------------------------------------------
-// [★ PROVIDER 3/4] 上游适配：构造请求、解析响应
+//  [★ PROVIDER 3/4] 上游适配：构造请求、解析响应
 // ---------------------------------------------------------------------------------
 
 /**
@@ -107,7 +108,7 @@ async function callUpstream(ctx) {
 }
 
 // ---------------------------------------------------------------------------------
-// [★ PROVIDER 4/4] 请求 → prompt 抽取（多数情况无需改）
+//  [★ PROVIDER 4/4] 请求 → prompt 抽取（多数情况无需改）
 // ---------------------------------------------------------------------------------
 function resolveToolId(requested) {
   if (!requested) return CONFIG.DEFAULT_MODEL;
@@ -139,26 +140,32 @@ function extractPrompt(messages, system) {
 }
 
 // =================================================================================
-//  以下为协议引擎（伪流式 / 双协议 / 路由 / 错误）—— 通常无需修改
+//  通用请求处理入口（各运行时适配器调用）—— 通常无需修改
 // =================================================================================
 
-export default {
-  async fetch(request, env) {
-    const apiKey = env.API_MASTER_KEY || CONFIG.API_MASTER_KEY;
-    const url = new URL(request.url);
-    if (request.method === "OPTIONS") return corsPreflight();
-    switch (url.pathname) {
-      case "/": return handleUI(request, apiKey);
-      case "/healthz":
-        return json({ status: "ok", models: ALL_MODELS.length, upstream: CONFIG.ORIGIN_URL });
-      case "/v1/models": return handleModels(request, apiKey);
-      case "/v1/chat/completions": return handleOpenAI(request, apiKey);
-      case "/v1/messages": return handleAnthropic(request, apiKey);
-      case "/v1/messages/count_tokens": return handleCountTokens(request, apiKey);
-      default: return errorResponse(`未找到路径: ${url.pathname}`, 404, "not_found");
-    }
-  },
-};
+/**
+ * 处理一个 Web 标准 Request，返回 Response。
+ * @param {Request} request
+ * @param {Record<string,string>} [env] 环境变量（如 API_MASTER_KEY）
+ * @returns {Promise<Response>}
+ */
+export async function handle(request, env = {}) {
+  const apiKey = env.API_MASTER_KEY || CONFIG.API_MASTER_KEY;
+  const url = new URL(request.url);
+  if (request.method === "OPTIONS") return corsPreflight();
+  switch (url.pathname) {
+    case "/": return handleUI(request, apiKey);
+    case "/healthz":
+      return json({ status: "ok", models: ALL_MODELS.length, upstream: CONFIG.ORIGIN_URL });
+    case "/v1/models": return handleModels(request, apiKey);
+    case "/v1/chat/completions": return handleOpenAI(request, apiKey);
+    case "/v1/messages": return handleAnthropic(request, apiKey);
+    case "/v1/messages/count_tokens": return handleCountTokens(request, apiKey);
+    default: return errorResponse(`未找到路径: ${url.pathname}`, 404, "not_found");
+  }
+}
+
+export { CONFIG, CATALOG, ALL_MODELS };
 
 // ---------- OpenAI ----------
 async function handleOpenAI(request, apiKey) {

@@ -63,7 +63,7 @@ fetch("<端点>", { method:"POST",
 
 ### 6. 填骨架
 
-- 选形态：公网 → `template/cloudflare/`；本地 → `template/local/`
+- 选形态：公网 → `template/js/`；本地 → `template/local/`
 - 改 3 处：上游适配、模型目录、配置
 - 协议转换与错误映射骨架已就绪，通常不用改
 

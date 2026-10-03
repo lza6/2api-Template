@@ -60,18 +60,24 @@ fetch("https://目标/端点",{method:"POST",headers:{...},body:JSON.stringify({
 
 ## 第 4 步 · 选形态，填 provider
 
-| 需求 | 选 | 复制 |
+两种骨架：
+
+| 需求 | 选 | 位置 |
 |------|-----|------|
-| 公网一键部署、零运维 | Cloudflare Worker | `template/cloudflare/worker.js` |
-| 本机 `127.0.0.1`、单二进制 | Rust 网关 | `template/local/` |
+| 公网/边缘（CF、Vercel）、或本机 Node/Bun/Deno | **JS 核心** | `template/js/core.mjs` |
+| 本机 `127.0.0.1`、单二进制、零 Node 依赖 | **Rust 网关** | `template/local/` |
 
-在骨架里改 3 处：
+> JS 核心只依赖 Web 标准 API，**一份代码**配不同入口即可跑在
+> Cloudflare Workers / Node / Bun / Deno / Vercel，见 [`DEPLOY.md`](DEPLOY.md)。
 
-1. **上游适配**：`upstream.js` / `src/upstream.rs` —— 端点、头、请求体构造、响应解析
-2. **模型目录**：`models.js` / `src/models.rs` —— 第 3 步采集的 id
-3. **配置**：`config.example.json` / `wrangler.toml`
+在骨架里改 4 处 `[★ PROVIDER]`：
 
-协议转换（OpenAI/Anthropic、伪流式、错误映射）骨架已实现，通常**不用改**。
+1. **配置**：上游端点、Origin/Referer、默认模型（`js/core.mjs` 的 `CONFIG` / `src/config.rs`）
+2. **模型目录**：第 3 步采集的真实 id（`CATALOG` / `src/models.rs`）
+3. **上游适配**：请求体构造、响应解析（`buildUpstreamRequest`/`parseUpstreamResponse` / `src/upstream.rs`）
+4. **错误映射**：额度哨兵 → 429（`QUOTA_SENTINEL` / `src/upstream.rs`）
+
+协议转换（OpenAI/Anthropic、伪流式、双协议、路由）骨架已实现，通常**不用改**。
 
 ---
 

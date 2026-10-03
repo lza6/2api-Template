@@ -33,7 +33,7 @@ node <smoke 脚本>
 对**每一个**模型/工具 id 发**真实**请求，产出「哪些真可用 / 哪些失败及原因」：
 
 ```bash
-node scripts/e2e-all-models.mjs        # 见模板 template/cloudflare/scripts/
+node scripts/e2e-all-models.mjs        # 见模板 template/js/scripts/
 ```
 
 判定要点：

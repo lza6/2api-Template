@@ -19,11 +19,11 @@
 ```
 2api-Template/
 ├── AGENTS.md        在此仓库工作时的流程与硬规则（自动加载）
-├── docs/            方法论：逆向、验收、架构、Claude Code 接入、生态状态
+├── docs/            方法论：逆向、验收、架构、Claude Code 接入、部署、生态状态
 ├── skills/          技能（reverse-2api 逆向 / verify-2api 验证）
 ├── scripts/         new-2api.mjs 脚手架生成器
-├── template/        双形态骨架（复制即用）
-│   ├── cloudflare/  Cloudflare Worker 单文件版
+├── template/        骨架（复制即用）
+│   ├── js/          一份 JS 核心 → Cloudflare / Node / Bun / Deno / Vercel
 │   └── local/       本地 Rust 网关（axum）
 └── examples/        成熟案例索引
 ```
@@ -31,16 +31,34 @@
 ## 快速开始
 
 ```bash
-# 一条命令生成新项目（默认 CF + 本地双形态）
+# 一条命令生成新项目（默认 JS + 本地 Rust 两种形态）
 node scripts/new-2api.mjs mysite-2api
+
+# 只生成某一种：
+node scripts/new-2api.mjs mysite-2api --js      # Cloudflare / Node / Bun / Deno / Vercel
+node scripts/new-2api.mjs mysite-2api --local   # 本地 Rust 单二进制
 
 # 或手动：
 # 1. 读 docs/QUICKSTART.md —— 5 步从零到可用网关
 # 2. 用 skills/reverse-2api/ 逆向上游契约
-# 3. 复制 template/cloudflare/ 或 template/local/，填 4 处 [★ PROVIDER]
+# 3. 复制 template/js/ 或 template/local/，填 4 处 [★ PROVIDER]
 # 4. 跑测试、对照 docs/INVARIANTS.md 验收
 # 5. 接入客户端（Claude Code 见 docs/CLAUDE-CODE.md）
 ```
+
+### JS 核心可跑在哪些运行时
+
+`template/js/core.mjs` 只依赖 Web 标准 API，**同一份代码**配不同入口即可：
+
+| 运行时 | 入口 | 启动 |
+|--------|------|------|
+| Cloudflare Workers | `targets/cloudflare.mjs` | `wrangler deploy` |
+| Node 18+ | `targets/node.mjs` | `node targets/node.mjs` |
+| Bun | `targets/bun.mjs` | `bun targets/bun.mjs` |
+| Deno | `targets/deno.mjs` | `deno run --allow-net --allow-env targets/deno.mjs` |
+| Vercel Edge | `targets/vercel.mjs` | 放 `api/` 目录 |
+
+详见 [`docs/DEPLOY.md`](docs/DEPLOY.md)。
 
 详见 [`docs/SCAFFOLD.md`](docs/SCAFFOLD.md)。
 

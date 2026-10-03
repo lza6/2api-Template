@@ -1,16 +1,17 @@
 // 2api 脚手架：一条命令从模板生成一个新的 2api 项目。
 //
 // 用法:
-//   node new-2api.mjs <项目名> [目标目录] [--local] [--cf] [--keep-git]
+//   node new-2api.mjs <项目名> [目标目录] [--js] [--local] [--both] [--keep-git]
 //
 // 例:
-//   node new-2api.mjs mysite-2api ../mysite-2api --local
-//   node new-2api.mjs mysite-2api --both
+//   node new-2api.mjs mysite-2api --local          # 仅本地 Rust 网关
+//   node new-2api.mjs mysite-2api --js             # 仅 JS（CF/Node/Bun/Deno/Vercel）
+//   node new-2api.mjs mysite-2api                  # 默认两者
 //
 // 行为:
-//   · 复制 template/local 和/或 template/cloudflare 到目标目录（默认两者）
-//   · 替换占位：my-2api→<名>、my2api→<crate名>、example.com→<待填> 保留为 TODO
-//   · 生成 docs/ 骨架（PROTOCOL.md / E2E.md 待填）与 .gitignore
+//   · 复制 template/js 和/或 template/local 到目标目录（默认两者）
+//   · 替换占位：my-2api→<名>、my2api→<crate名>
+//   · 生成 docs/ 骨架（PROTOCOL.md 待填）、.gitignore、README
 //   · 打印「下一步」清单（对应 docs/QUICKSTART.md）
 import fs from "node:fs";
 import path from "node:path";
@@ -24,9 +25,10 @@ function parseArgs(argv) {
   const positional = argv.filter((a) => !a.startsWith("--"));
   const name = positional[0];
   const destArg = positional[1];
-  const wantLocal = flags.has("--local") || flags.has("--both") || (!flags.has("--cf") && !flags.has("--local"));
-  const wantCf = flags.has("--cf") || flags.has("--both") || (!flags.has("--cf") && !flags.has("--local"));
-  return { name, destArg, wantLocal, wantCf, keepGit: flags.has("--keep-git") };
+  const explicit = flags.has("--js") || flags.has("--local") || flags.has("--both") || flags.has("--cf");
+  const wantLocal = flags.has("--local") || flags.has("--both") || !explicit;
+  const wantJs = flags.has("--js") || flags.has("--cf") || flags.has("--both") || !explicit;
+  return { name, destArg, wantLocal, wantJs };
 }
 
 function toCrate(name) {
@@ -52,9 +54,9 @@ function copyDir(src, dst, replacers) {
 }
 
 function main() {
-  const { name, destArg, wantLocal, wantCf } = parseArgs(process.argv.slice(2));
+  const { name, destArg, wantLocal, wantJs } = parseArgs(process.argv.slice(2));
   if (!name) {
-    console.error("用法: node new-2api.mjs <项目名> [目标目录] [--local|--cf|--both]");
+    console.error("用法: node new-2api.mjs <项目名> [目标目录] [--js|--local|--both]");
     process.exit(1);
   }
   const dest = path.resolve(destArg || path.join("..", name));
@@ -64,6 +66,7 @@ function main() {
   }
   const crate = toCrate(name);
   const replacers = [
+    ["my-2api-js", name],
     ["my-2api", name],
     ["my2api", crate],
   ];
@@ -71,12 +74,12 @@ function main() {
   console.log(`生成项目: ${name}`);
   console.log(`  crate 名: ${crate}`);
   console.log(`  目标:     ${dest}`);
-  console.log(`  形态:     ${[wantCf && "cloudflare", wantLocal && "local"].filter(Boolean).join(" + ")}`);
+  console.log(`  形态:     ${[wantJs && "js(CF/Node/Bun/Deno/Vercel)", wantLocal && "local(Rust)"].filter(Boolean).join(" + ")}`);
 
   fs.mkdirSync(dest, { recursive: true });
 
-  if (wantCf) {
-    copyDir(path.join(TEMPLATE_ROOT, "template", "cloudflare"), path.join(dest, "cloudflare"), replacers);
+  if (wantJs) {
+    copyDir(path.join(TEMPLATE_ROOT, "template", "js"), path.join(dest, "js"), replacers);
   }
   if (wantLocal) {
     copyDir(path.join(TEMPLATE_ROOT, "template", "local"), path.join(dest, "local"), replacers);
@@ -102,25 +105,25 @@ function main() {
 
 ## 形态
 
-${wantCf ? "- `cloudflare/` — Cloudflare Worker（公网部署）\n" : ""}${wantLocal ? "- `local/` — 本地 Rust 网关（本机使用）\n" : ""}
+${wantJs ? "- `js/` — 一份 JS 核心，可跑在 **Cloudflare Workers / Node / Bun / Deno / Vercel**\n" : ""}${wantLocal ? "- `local/` — 本地 Rust 网关（单二进制）\n" : ""}
 ## 下一步（对照 2api-Template/docs/QUICKSTART.md）
 
 1. **逆向上游** → 用 \`skills/reverse-2api\` 抓包，把契约写进 \`docs/PROTOCOL.md\`
 2. **采集目录** → 实测真实模型/工具 id
-3. **填 4 处 \`[★ PROVIDER]\`** → ${wantLocal ? "`local/src/config.rs`、`local/src/models.rs`、`local/src/upstream.rs`、`local/src/api.rs`" : "`cloudflare/worker.js` 的 CONFIG / CATALOG / buildUpstreamRequest / parseUpstreamResponse"}
-4. **全量 E2E** → \`node cloudflare/scripts/e2e-all-models.mjs\`（或对齐你的形态），把结论写进 \`docs/E2E.md\`
+3. **填 4 处 \`[★ PROVIDER]\`** → ${wantJs ? "`js/core.mjs`" : ""}${wantJs && wantLocal ? " 与 " : ""}${wantLocal ? "`local/src/{config,models,upstream,api}.rs`" : ""}
+4. **全量 E2E** → \`node js/scripts/e2e-all-models.mjs\`，把结论写进 \`docs/E2E.md\`
 5. **验收** → 逐条对照 2api-Template 的 \`docs/INVARIANTS.md\`
 
-## 测试
+## 运行 / 测试
 
-${wantCf ? "\`\`\`bash\ncd cloudflare && node smoke.mjs\n\`\`\`\n" : ""}${wantLocal ? "\`\`\`bash\ncd local && cargo test\n\`\`\`\n" : ""}
+${wantJs ? "\`\`\`bash\ncd js && node smoke.mjs         # 冒烟测试\nnode targets/node.mjs           # 本地跑 (Node)\nbun  targets/bun.mjs            # 本地跑 (Bun)\nwrangler deploy                 # 部署到 Cloudflare\n\`\`\`\n" : ""}${wantLocal ? "\`\`\`bash\ncd local && cargo test\ncargo run --release -- --config config.json\n\`\`\`\n" : ""}
 `);
 
   // 完成提示
   console.log("\n完成。下一步:");
   console.log("  1. cd " + path.relative(process.cwd(), dest));
+  if (wantJs) console.log("  2. 编辑 js/core.mjs 的 [★ PROVIDER]");
   if (wantLocal) console.log("  2. 编辑 local/src/{config,models,upstream,api}.rs 的 [★ PROVIDER]");
-  if (wantCf) console.log("  2. 编辑 cloudflare/worker.js 的 [★ PROVIDER]");
   console.log("  3. 填写 docs/PROTOCOL.md（逆向契约）");
   console.log("  4. 跑测试 → 对照 docs/INVARIANTS.md 验收");
   console.log("\n详见 2api-Template/docs/QUICKSTART.md");

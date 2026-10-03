@@ -68,5 +68,5 @@
 
 ### 5. 双形态共享
 
-CF Worker 与本地 Rust 版**共享同一份 `docs/PROTOCOL.md`**。上游变更时改一处文档，
+JS 核心与本地 Rust 版**共享同一份 `docs/PROTOCOL.md`**。上游变更时改一处文档，
 两处实现同步跟进。二者的行为不变量由 `docs/INVARIANTS.md` 保证一致。

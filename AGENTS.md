@@ -5,7 +5,7 @@
 ## 这是什么
 
 把任意站点的免费 AI 服务逆向为 **OpenAI（`/v1/chat/completions`）+ Anthropic（`/v1/messages`）兼容网关**。
-两种形态：Cloudflare Worker（`template/cloudflare/`）与本地 Rust 网关（`template/local/`）。
+两种骨架：**JS 核心**（`template/js/`，一份代码跑 CF / Node / Bun / Deno / Vercel）与**本地 Rust 网关**（`template/local/`）。
 
 ## 核心工作流（新 provider）
 
