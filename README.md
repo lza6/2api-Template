@@ -18,8 +18,10 @@
 
 ```
 2api-Template/
-├── docs/            方法论：逆向怎么做、网关怎么搭
-├── skills/          逆向技能（Claude Code 可直接调用）
+├── AGENTS.md        在此仓库工作时的流程与硬规则（自动加载）
+├── docs/            方法论：逆向、验收、架构、Claude Code 接入、生态状态
+├── skills/          技能（reverse-2api 逆向 / verify-2api 验证）
+├── scripts/         new-2api.mjs 脚手架生成器
 ├── template/        双形态骨架（复制即用）
 │   ├── cloudflare/  Cloudflare Worker 单文件版
 │   └── local/       本地 Rust 网关（axum）
@@ -59,18 +61,10 @@ node scripts/new-2api.mjs mysite-2api
 
 ## 参考实现
 
+见 [`docs/PROJECTS.md`](docs/PROJECTS.md)（各项目达成度 + 独有能力）与 [`examples/README.md`](examples/README.md)（不同上游形态选型）。
+
 本模板提炼自 [`perfectassistant-2api`](https://github.com/lza6/perfectassistant-2api-cfwork) 的
-双形态重构：同一上游协议，CF Worker 与本地 Rust 网关共享，`docs/PROTOCOL.md` 记录逆向证据，
-`local/tests/` + `scripts/worker-smoke.mjs` 共 53 项测试。
-
-同系列其它实现（不同上游形态）：
-
-| 项目 | 形态 | 特点 |
-|------|------|------|
-| [`TokenHarbor-2api`](https://github.com/lza6/TokenHarbor-2api) | Rust | Cookie 登录 + 自动续期 + 凭证池 |
-| [`Tryingopen-2api`](https://github.com/lza6/Tryingopen-2api) | Rust | 匿名端点 + 代理池轮换 |
-| [`creen-2api`](https://github.com/lza6/creen-2api) | Node | 图像/视频生成 + 任务轮询 + 账号池 |
-| [`perfectassistant-2api`](https://github.com/lza6/perfectassistant-2api-cfwork) | CF + Rust | 免费匿名端点 + 伪流式（本模板母本） |
+双形态重构：同一上游协议，CF Worker 与本地 Rust 网关共享，`docs/PROTOCOL.md` 记录逆向证据。
 
 ## 开源协议
 
