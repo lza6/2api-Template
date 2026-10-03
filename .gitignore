@@ -1,0 +1,15 @@
+# 依赖与构建产物
+node_modules/
+dist/
+.wrangler/
+target/
+config.json
+
+# 抓取产物
+captures/
+
+# 编辑器 / 系统
+.DS_Store
+.idea/
+.vscode/
+*.log

@@ -1,0 +1,14 @@
+{
+  "slug": "my-2api",
+  "listen_addr": "127.0.0.1:47832",
+  "upstream_base_url": "https://example.com",
+  "upstream_free_path": "/api/chat",
+  "api_keys": [],
+  "default_model": "default-model",
+  "pseudo_chunk_chars": 120,
+  "pseudo_chunk_delay_ms": 0,
+  "request_timeout_sec": 120,
+  "cors_allow_origins": [],
+  "skip_upstream_check": false,
+  "pass_through_unknown_models": true
+}
